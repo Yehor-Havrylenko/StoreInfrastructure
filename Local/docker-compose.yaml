@@ -1,0 +1,73 @@
+version: "3.8"
+
+services:
+  learn-postgres:
+    image: postgres
+    container_name: learn_postgres
+    env_file:
+      - postgresql.env
+    volumes:
+      - learn_postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5431:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+    networks:
+      - learn
+
+  learn-redis:
+    image: redis
+    container_name: redis
+    ports:
+      - "6379:6379"
+    env_file:
+      - redis.env
+    command: redis-server --requirepass 123123
+    volumes:
+      - learn_redis_data:/data
+
+  learn-backend-rds:
+    build:
+      context: ./../
+      dockerfile: Local/Dockerfiles/backend-rds/Dockerfile
+    container_name: learn-backend-rds
+    depends_on:
+      - learn-postgres
+    env_file:
+      - backend-rds.env
+    ports:
+      - "5111:5000"
+
+  learn-backend-redis:
+    build:
+      context: ./../
+      dockerfile: Local/Dockerfiles/backend-redis/Dockerfile
+    container_name: backend-redis
+    depends_on:
+      - learn-redis
+    env_file:
+      - backend-redis.env
+    ports:
+      - "5101:5001"
+
+  learn-frontend:
+    build:
+      context: ./../
+      dockerfile: Local/Dockerfiles/frontend/Dockerfile
+    container_name: frontend
+    depends_on:
+      - learn-backend-rds
+      - learn-backend-redis
+    ports:
+      - "8081:80"
+
+volumes:
+  learn_postgres_data:
+  learn_redis_data:
+
+networks:
+  learn:
+    driver: bridge
