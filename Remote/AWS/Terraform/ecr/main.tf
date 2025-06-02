@@ -7,7 +7,9 @@ terraform {
   }
 }
 resource "aws_ecr_repository" "repository" {
-  name                 = var.repository_name
+  for_each = toset(var.repository_name)
+
+  name                 = each.value
   image_tag_mutability = "MUTABLE"
 
   image_scanning_configuration {

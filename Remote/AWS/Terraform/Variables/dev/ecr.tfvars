@@ -1,3 +1,2 @@
-repository_name = "learn-backend-rds"
+repository_name = ["learn-backend-rds", "learn-backend-redis"]
 environment     = "dev"
-tfstate_key     = "module-1/dev/ecr.tfstate"

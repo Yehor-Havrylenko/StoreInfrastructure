@@ -5,7 +5,7 @@ variable "aws_region" {
 
 variable "repository_name" {
   description = "name ecr repository"
-  type        = string
+  type        = list(string)
 }
 
 variable "environment" {
