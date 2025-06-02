@@ -17,33 +17,17 @@ resource "aws_s3_bucket" "frontend_bucket" {
     Environment = var.environment
   }
 }
-
-resource "aws_s3_bucket_policy" "frontend_bucket_policy" {
-  bucket = aws_s3_bucket.frontend_bucket.id
-  policy = jsonencode({
-    Version = "2012-10-17",
-    Statement = [
-      {
-        Sid       = "PublicReadGetObject",
-        Effect    = "Allow",
-        Principal = "*",
-        Action    = "s3:GetObject",
-        Resource  = "${aws_s3_bucket.frontend_bucket.arn}/*"
-      }
-    ]
-  })
+resource "aws_cloudfront_origin_access_identity" "oai" {
+  comment = "OAI for CloudFront to access S3 securely"
 }
 
 resource "aws_cloudfront_distribution" "frontend_distribution" {
-  origin {
-    domain_name = aws_s3_bucket.frontend_bucket.website_endpoint
+   origin {
+    domain_name = aws_s3_bucket.frontend_bucket.bucket_regional_domain_name
     origin_id   = "S3-${aws_s3_bucket.frontend_bucket.id}"
 
-    custom_origin_config {
-      http_port              = 80
-      https_port             = 443
-      origin_protocol_policy = "http-only"
-      origin_ssl_protocols   = ["TLSv1", "TLSv1.1", "TLSv1.2"]
+    s3_origin_config {
+      origin_access_identity = aws_cloudfront_origin_access_identity.oai.cloudfront_access_identity_path
     }
   }
 
