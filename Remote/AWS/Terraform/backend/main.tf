@@ -2,10 +2,7 @@ provider "aws" {
   region = var.aws_region
 }
 terraform {
-  backend "s3" {
-    bucket = "learn-state"        
-    key    = var.tfstate_key        
-    region = var.aws_region                        
+  backend "s3" {              
     encrypt = true                                 
   }
 }

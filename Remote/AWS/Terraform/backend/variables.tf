@@ -34,6 +34,3 @@ variable "user_data_script" {
   description = "backend file path"
   type        = string
 }
-variable "tfstate_key" {
-  type = string
-}

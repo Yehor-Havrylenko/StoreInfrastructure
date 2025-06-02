@@ -13,6 +13,3 @@ variable "environment" {
   type        = string
   default     = "dev"
 }
-variable "tfstate_key" {
-  type = string
-}
