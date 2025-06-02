@@ -33,6 +33,7 @@ services:
     build:
       context: ./../
       dockerfile: Local/Dockerfiles/backend-rds/Dockerfile
+    image: uamgl/learn-backend-rds:latest
     container_name: learn-backend-rds
     depends_on:
       - learn-postgres
@@ -45,6 +46,7 @@ services:
     build:
       context: ./../
       dockerfile: Local/Dockerfiles/backend-redis/Dockerfile
+    image: uamgl/learn-backend-redis:latest
     container_name: backend-redis
     depends_on:
       - learn-redis
