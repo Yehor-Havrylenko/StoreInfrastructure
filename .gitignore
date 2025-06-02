@@ -1,1 +1,3 @@
 [Ff]1-store/
+.terraform*
+*.tfstate*

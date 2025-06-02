@@ -8,11 +8,11 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-COPY f1-store/backend_rds/requirements.txt .
+COPY cloned/backend_rds/requirements.txt .
 
 RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
 
-COPY f1-store/backend_rds .
+COPY cloned/backend_rds .
 
 EXPOSE 5000
 

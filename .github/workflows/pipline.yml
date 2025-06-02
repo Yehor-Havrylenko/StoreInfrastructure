@@ -1,0 +1,89 @@
+name: CI/CD Sequential Pipeline
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  terraform_ecr:
+    name: Deploy ECR (Terraform)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Remote/AWS/Scripts
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+      - name: Terraform Start (ECR)
+        run: bash controller.sh apply dev ecr
+
+  build_and_push:
+    name: Build & Push Docker Image to ECR
+    runs-on: ubuntu-latest
+    needs: terraform_ecr
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+      - name: Clone f1-store Repository
+        run: git clone https://github.com/THE-GAME-DEVOPS/f1-store.git cloned
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v1
+      - name: Build & Push Docker Image via docker-compose
+        env:
+          MY_IMAGE_RDS: "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/learn-backend-rds:latest"
+          MY_IMAGE_REDIS: "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/learn-backend-redis:latest"
+        run: |
+          cd Local
+          docker compose -f docker-compose.yaml build learn-backend-rds
+          docker compose -f docker-compose.yaml push learn-backend-rds
+          docker compose -f docker-compose.yaml build learn-backend-redis
+          docker compose -f docker-compose.yaml push learn-backend-redis
+
+  terraform_backend:
+    name: Deploy Backend (Terraform)
+    runs-on: ubuntu-latest
+    needs: build_and_push
+    defaults:
+      run:
+        working-directory: Remote/AWS/Scripts
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+      - name: Terraform Start (Backend)
+        run: bash controller.sh apply dev backend
+
+  terraform_frontend:
+    name: Deploy Frontend (Terraform & S3 Sync)
+    runs-on: ubuntu-latest
+    needs: terraform_backend
+    defaults:
+      run:
+        working-directory: Remote/AWS/Scripts
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v3
+      - name: Terraform Start (Frontend)
+        run: bash controller.sh apply dev frontend
+
+  sync_s3_bucket:
+    name: Sync S3
+    runs-on: ubuntu-latest
+    needs: terraform_frontend
+    defaults:
+      run:
+        working-directory: cloned/frontend
+    steps:
+      - name: Sync Frontend Assets to S3
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ secrets.AWS_REGION }}
+          FRONTEND_BUCKET: ${{ secrets.FRONTEND_BUCKET_NAME }}
+        run: aws s3 sync . s3://$FRONTEND_BUCKET --delete

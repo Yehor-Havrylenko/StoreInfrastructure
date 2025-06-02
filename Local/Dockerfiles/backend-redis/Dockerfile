@@ -8,11 +8,11 @@ RUN apt-get update && apt-get install -y \
 
 WORKDIR /app
 
-COPY f1-store/backend_redis/requirements.txt .
+COPY cloned/backend_redis/requirements.txt .
 
 RUN pip install --upgrade pip && pip install --no-cache-dir -r requirements.txt
 
-COPY f1-store/backend_redis .
+COPY cloned/backend_redis .
 
 EXPOSE 5001
 
