@@ -13,6 +13,10 @@ jobs:
       run:
         working-directory: Remote/AWS/Scripts
     steps:
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: "1.12.1"
       - name: Checkout Repository
         uses: actions/checkout@v3
       - name: Terraform Start (ECR)
@@ -56,6 +60,10 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: "1.12.1"
       - name: Terraform Start (Backend)
         run: bash controller.sh apply dev backend
 
@@ -69,6 +77,10 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v1
+        with:
+          terraform_version: "1.12.1"
       - name: Terraform Start (Frontend)
         run: bash controller.sh apply dev frontend
 
