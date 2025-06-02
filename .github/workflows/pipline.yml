@@ -69,6 +69,10 @@ jobs:
         with:
           terraform_version: "1.12.1"
       - name: Terraform Start (Backend)
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
         run: bash controller.sh apply dev backend
 
   terraform_frontend:
@@ -86,6 +90,10 @@ jobs:
         with:
           terraform_version: "1.12.1"
       - name: Terraform Start (Frontend)
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_DEFAULT_REGION: ${{ secrets.AWS_REGION }}
         run: bash controller.sh apply dev frontend
 
   sync_s3_bucket:
