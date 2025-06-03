@@ -1,6 +1,9 @@
-output "frontend_bucket_website_endpoint" {
-  description = "web-endpoint for static site in S3"
-  value       = aws_s3_bucket.frontend_bucket.website_endpoint
+output "bucket_name" {
+  value       = aws_s3_bucket.this.bucket
+}
+
+output "bucket_regional_domain_name" {
+  value       = aws_s3_bucket.this.bucket_regional_domain_name
 }
 
 output "cloudfront_domain_name" {

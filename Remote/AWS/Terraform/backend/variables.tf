@@ -1,24 +1,26 @@
 variable "aws_region" {
   type        = string
-  default     = "eu-central-1"
 }
 variable "vpc_name" {
   type        = string
-  default     = "backend-vpc"
+}
+variable "instance_names" {
+  description = "Instances map"
+  type = map(object({
+    instance_type = string
+    subnet_index  = number
+  }))
+}
+variable "public_subnets" {
+  type        = list(string)
 }
 
-variable "subnet_name" {
-  type        = string
-  default     = "backend-public-subnet"
+variable "private_subnets" {
+  type        = list(string)
 }
-
-variable "availability_zone" {
-  type        = string
-  default     = "eu-central-1a"
-}
-variable "instance_type" {
-  description = "instance type EC2"
-  type        = string
+variable "azs" {
+  description = "List Availability Zones"
+  type        = list(string)
 }
 
 variable "key_name" {
@@ -26,11 +28,18 @@ variable "key_name" {
   type        = string
 }
 
-variable "instance_name" {
+variable "vpc_cidr" {
+  description = "CIDR block for VPC"
   type        = string
 }
-
 variable "user_data_script" {
   description = "backend file path"
+  type        = string
+}
+variable "environment" {
+  type        = string
+}
+variable "ami_id" {
+  description = "AMI для запуска EC2-инстансов"
   type        = string
 }

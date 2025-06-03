@@ -1,4 +1,5 @@
-output "repository_urls" {
+output "ecr_repository_urls" {
   description = "Map of repository names to their URLs"
-  value = { for repo_name, repo in aws_ecr_repository.repository : repo_name => repo.repository_url }
+  value       = { for key, mod in module.ecr_repositories : key => mod.repository_url }
 }
+

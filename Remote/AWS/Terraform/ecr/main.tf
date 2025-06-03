@@ -6,18 +6,21 @@ terraform {
     encrypt = true                                 
   }
 }
-resource "aws_ecr_repository" "repository" {
-  for_each = toset(var.repository_name)
+module "ecr_repositories" {
+  for_each = { for repo in var.repository_name : repo => repo }
 
-  name                 = each.value
-  image_tag_mutability = "MUTABLE"
-  force_delete         = true
+  source  = "terraform-aws-modules/ecr/aws"
+  version = "2.4.0"
 
-  image_scanning_configuration {
-    scan_on_push = true
-  }
+  repository_name = each.key
+
+  create_repository                   = true
+  repository_force_delete             = true
+  repository_image_tag_mutability     = "MUTABLE"
+  repository_image_scan_on_push       = true
 
   tags = {
     Environment = var.environment
   }
 }
+

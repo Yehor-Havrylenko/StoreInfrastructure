@@ -6,63 +6,52 @@ terraform {
     encrypt = true                                 
   }
 }
-resource "aws_s3_bucket" "frontend_bucket" {
-  bucket = var.bucket_name
-  website {
-    index_document = "index.html"
-    error_document = "index.html"
-  }
 
-  tags = {
-    Environment = var.environment
-  }
-}
-resource "aws_cloudfront_origin_access_identity" "oai" {
-  comment = "OAI for CloudFront to access S3 securely"
-}
-
-resource "aws_cloudfront_distribution" "frontend_distribution" {
-   origin {
-    domain_name = aws_s3_bucket.frontend_bucket.bucket_regional_domain_name
-    origin_id   = "S3-${aws_s3_bucket.frontend_bucket.id}"
-
-    s3_origin_config {
-      origin_access_identity = aws_cloudfront_origin_access_identity.oai.cloudfront_access_identity_path
-    }
-  }
+module "cloudfront" {
+  source  = "terraform-aws-modules/cloudfront/aws"
+  version = "4.1.0"
 
   enabled             = true
   is_ipv6_enabled     = true
+  comment             = "My CloudFront distribution for a static website"
   default_root_object = "index.html"
+  price_class         = "PriceClass_100"
 
-  default_cache_behavior {
-    allowed_methods  = ["GET", "HEAD", "OPTIONS"]
-    cached_methods   = ["GET", "HEAD", "OPTIONS"]
-    target_origin_id = "S3-${aws_s3_bucket.frontend_bucket.id}"
+ origin = [
+    {
+      origin_id   = "s3-origin" 
+      domain_name = module.s3_bucket.bucket_regional_domain_name
 
-    forwarded_values {
-      query_string = false
-      cookies {
-        forward = "none"
+      s3_origin_config = {
+        origin_access_identity = aws_cloudfront_origin_access_identity.this.cloudfront_access_identity_path
       }
     }
+  ]
 
-    viewer_protocol_policy = "redirect-to-https"
-  }
-
-  price_class = "PriceClass_100"
-
-  restrictions {
-    geo_restriction {
-      restriction_type = "none"
-    }
-  }
-
-  viewer_certificate {
-    cloudfront_default_certificate = true
+  default_cache_behavior = {
+    target_origin_id       = "s3-origin"
+    viewer_protocol_policy = "http-and-https"
+    allowed_methods        = ["GET", "HEAD", "OPTIONS"]
+    cached_methods         = ["GET", "HEAD", "OPTIONS"]
+    compress               = true
   }
 
   tags = {
     Environment = var.environment
   }
+}
+
+
+resource "aws_cloudfront_origin_access_identity" "this" {
+  comment = "OAI for CloudFront Access to S3"
+}
+resource "aws_s3_bucket" "this" {
+  bucket = var.bucket_name
+
+  website {
+    index_document = var.index_document
+    error_document = var.error_document
+  }
+
+  tags = var.bucket_tags
 }

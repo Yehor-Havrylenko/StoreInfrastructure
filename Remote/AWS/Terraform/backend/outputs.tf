@@ -1,4 +1,14 @@
-output "instance_public_ip" {
-  description = "public ip address EC2 instance"
-  value       = aws_instance.backend.public_ip
+output "vpc_id" {
+  description = "ID created VPC"
+  value       = module.vpc.vpc_id
+}
+
+output "public_subnets" {
+  description = "List public subnets"
+  value       = module.vpc.public_subnets
+}
+
+output "ec2_instance_ids" {
+  description = "Map ID created instances"
+  value       = { for instance, mod in module.ec2_instances : instance => mod.instance_id }
 }
