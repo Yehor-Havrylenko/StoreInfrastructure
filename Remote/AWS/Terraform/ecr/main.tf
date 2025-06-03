@@ -18,6 +18,7 @@ module "ecr_repositories" {
   repository_force_delete             = true
   repository_image_tag_mutability     = "MUTABLE"
   repository_image_scan_on_push       = true
+  create_lifecycle_policy             = false
 
   tags = {
     Environment = var.environment
