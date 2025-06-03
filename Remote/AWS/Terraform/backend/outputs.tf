@@ -10,5 +10,5 @@ output "public_subnets" {
 
 output "ec2_instance_ids" {
   description = "Map ID created instances"
-  value       = { for instance, mod in module.ec2_instances : instance => mod.this_instance_id }
+  value       = { for instance, mod in module.ec2_instances : instance => mod.this_instance_id }  
   }
