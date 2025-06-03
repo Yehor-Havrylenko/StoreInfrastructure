@@ -6,7 +6,7 @@ terraform {
     encrypt = true                                 
   }
 }
-
+/*
 module "cloudfront" {
   source  = "terraform-aws-modules/cloudfront/aws"
   version = "4.1.0"
@@ -45,6 +45,7 @@ module "cloudfront" {
 resource "aws_cloudfront_origin_access_identity" "this" {
   comment = "OAI for CloudFront Access to S3"
 }
+*/
 resource "aws_s3_bucket" "this" {
   bucket = var.bucket_name
 
