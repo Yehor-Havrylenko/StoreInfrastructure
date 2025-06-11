@@ -2,7 +2,12 @@ name: Cleanup S3 Bucket
 
 on:
   workflow_call:
-
+    secrets:
+      AWS_REGION:
+        required: true
+      AWS_ACCOUNT_ID:
+        required: true
+        
 jobs:
   cleanup-s3:
     runs-on: ubuntu-latest
