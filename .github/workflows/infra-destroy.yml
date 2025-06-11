@@ -12,7 +12,9 @@ on:
       confirm:
         required: true
         type: string
-
+permissions:
+  id-token: write
+  contents: read
 jobs:
   guard:
     runs-on: ubuntu-latest
