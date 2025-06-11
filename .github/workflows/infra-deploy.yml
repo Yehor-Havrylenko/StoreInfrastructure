@@ -1,40 +1,33 @@
 name: Deploy Infrastructure
 
 on:
-  workflow_dispatch:
   workflow_call:
+  workflow_dispatch:
 
 jobs:
-  deploy_ecr_and_build:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Apply ECR
-        uses: ./.github/workflows/terraform-infra.yml
-        with:
-          action: apply
-          component: ecr
+  apply_ecr:
+    uses: ./.github/workflows/terraform-infra.yml
+    with:
+      action: apply
+      component: ecr
 
-      - name: Build Docker Images
-        uses: ./.github/workflows/docker-build-push.yml
+  build_docker:
+    uses: ./.github/workflows/docker-build-push.yml
+    needs: apply_ecr
 
-  deploy_backend:
-    needs: deploy_ecr_and_build
-    runs-on: ubuntu-latest
-    steps:
-      - name: Apply Backend
-        uses: ./.github/workflows/terraform-infra.yml
-        with:
-          action: apply
-          component: backend
+  apply_backend:
+    uses: ./.github/workflows/terraform-infra.yml
+    needs: build_docker
+    with:
+      action: apply
+      component: backend
 
-  deploy_frontend_and_sync:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Apply Frontend
-        uses: ./.github/workflows/terraform-infra.yml
-        with:
-          action: apply
-          component: frontend
+  apply_frontend:
+    uses: ./.github/workflows/terraform-infra.yml
+    with:
+      action: apply
+      component: frontend
 
-      - name: Sync S3
-        uses: ./.github/workflows/s3-sync.yml
+  sync_s3:
+    uses: ./.github/workflows/s3-sync.yml
+    needs: apply_frontend

@@ -1,0 +1,60 @@
+name: Clean ECR repos from Terraform output
+
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        type: string
+        required: false
+        default: Remote/AWS/Scripts
+
+jobs:
+  extract_and_clean:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: 1.12.1
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/GitHub_Deploy_Role
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Init terraform backend
+        run: terraform init -input=false
+
+      - name: Extract ECR repo names from terraform output
+        id: extract
+        run: |
+          terraform output -json ecr_repository_urls | \
+            jq -r 'to_entries[].key' > ecr_names.txt
+
+      - name: Delete all images from each ECR repo
+        run: |
+          while read repo; do
+            echo "🧹 Cleaning ECR: $repo"
+            images=$(aws ecr list-images \
+              --repository-name "$repo" \
+              --query 'imageIds[*]' \
+              --output json \
+              --region ${{ secrets.AWS_REGION }})
+
+            if [[ "$images" == "[]" ]]; then
+              echo "✅ $repo already empty"
+            else
+              aws ecr batch-delete-image \
+                --repository-name "$repo" \
+                --image-ids "$images" \
+                --region ${{ secrets.AWS_REGION }}
+              echo "🗑 Removed images from $repo"
+            fi
+          done < ecr_names.txt

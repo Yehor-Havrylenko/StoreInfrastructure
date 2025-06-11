@@ -2,6 +2,11 @@ name: Destroy Infrastructure
 
 on:
   workflow_dispatch:
+    inputs:
+      confirm:
+        description: "you want to confirm your action: 'YES' or 'NO'"
+        required: true
+        type: string
   workflow_call:
     inputs:
       confirm:
@@ -9,33 +14,31 @@ on:
         type: string
 
 jobs:
-  check_confirm:
+  guard:
     runs-on: ubuntu-latest
     outputs:
-      allow_destroy: ${{ steps.guard.outputs.allow_destroy }}
+      allowed: ${{ steps.check.outputs.allowed }}
     steps:
-      - id: guard
+      - id: check
         run: |
           if [ "${{ inputs.confirm }}" != "YES" ]; then
-            echo "✅ Confirmation not provided. Skipping destroy."
-            echo "allow_destroy=false" >> "$GITHUB_OUTPUT"
+            echo "allowed=false" >> $GITHUB_OUTPUT
           else
-            echo "allow_destroy=true" >> "$GITHUB_OUTPUT"
+            echo "allowed=true" >> $GITHUB_OUTPUT
           fi
 
   cleanup:
-    if: needs.check_confirm.outputs.allow_destroy == 'true'
-    needs: check_confirm
+    if: needs.guard.outputs.allowed == 'true'
+    needs: guard
     runs-on: ubuntu-latest
     steps:
-      - name: Clean ECR
+      - name: Cleanup ECR
         uses: ./.github/workflows/cleanup-ecr.yml
-
-      - name: Clean S3
+      - name: Cleanup S3
         uses: ./.github/workflows/s3-cleanup.yml
 
-  destroy_terraform:
-    if: needs.check_confirm.outputs.allow_destroy == 'true'
+  destroy:
+    if: needs.guard.outputs.allowed == 'true'
     needs: cleanup
     strategy:
       matrix:

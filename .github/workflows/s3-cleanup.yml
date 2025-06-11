@@ -1,0 +1,18 @@
+name: Cleanup S3 Bucket
+
+on:
+  workflow_call:
+
+jobs:
+  cleanup-s3:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/GitHub_Deploy_Role
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Empty S3 Bucket
+        run: |
+          aws s3 rm s3://${{ secrets.S3_BUCKET_NAME }} --recursive \
+            --region ${{ secrets.AWS_REGION }}

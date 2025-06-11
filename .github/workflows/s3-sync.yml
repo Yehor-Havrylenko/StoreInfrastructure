@@ -1,0 +1,21 @@
+name: S3 Bucket Sync
+
+on:
+  workflow_call:
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/GitHub_Deploy_Role
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Sync to S3
+        run: |
+          aws s3 sync ./cloned/frontend/ s3://${{ secrets.S3_BUCKET_NAME }} \
+            --delete \
+            --region ${{ secrets.AWS_REGION }}
