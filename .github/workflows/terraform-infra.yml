@@ -64,4 +64,4 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
 
       - name: Run Terraform Script
-        run: bash controller.sh ${{ github.event.inputs.action }} dev ${{ github.event.inputs.component }}
+        run: bash controller.sh ${{ inputs.action }} dev ${{ inputs.component }}
