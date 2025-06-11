@@ -8,10 +8,10 @@ on:
 jobs:
   trigger_deploy:
     name: Run Full Deploy Workflow
-    uses: ./.github/workflows/infra/deploy.yml
+    uses: ./.github/workflows/infra-deploy.yml
 
   trigger_destroy:
     name: Run Full Destroy Workflow
     needs: trigger_deploy
     if: always()
-    uses: ./.github/workflows/infra/destroy.yml
+    uses: ./.github/workflows/infra-destroy.yml
