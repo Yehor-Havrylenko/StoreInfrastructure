@@ -2,7 +2,13 @@ name: S3 Bucket Sync
 
 on:
   workflow_call:
-
+    secrets:
+      AWS_REGION:
+        required: true
+      AWS_ACCOUNT_ID:
+        required: true
+      S3_BUCKET_NAME:
+        required: true
 jobs:
   sync:
     runs-on: ubuntu-latest
@@ -14,6 +20,8 @@ jobs:
         with:
           role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/GitHub_Deploy_Role
           aws-region: ${{ secrets.AWS_REGION }}
+      - name: Clone f1-store Repository
+        run: git clone https://github.com/THE-GAME-DEVOPS/f1-store.git cloned
       - name: Sync to S3
         run: |
           aws s3 sync ./cloned/frontend/ s3://${{ secrets.S3_BUCKET_NAME }} \

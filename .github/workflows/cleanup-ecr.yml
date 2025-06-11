@@ -7,7 +7,12 @@ on:
         type: string
         required: false
         default: Remote/AWS/Scripts
-
+    secrets:
+      AWS_REGION:
+        required: true
+      AWS_ACCOUNT_ID:
+        required: true
+        
 jobs:
   extract_and_clean:
     runs-on: ubuntu-latest

@@ -7,14 +7,24 @@ on:
         description: "you want to confirm your action: 'YES' or 'NO'"
         required: true
         type: string
+
   workflow_call:
     inputs:
       confirm:
         required: true
         type: string
+    secrets:
+      AWS_REGION:
+        required: true
+      AWS_ACCOUNT_ID:
+        required: true
+      S3_BUCKET_NAME:
+        required: true
+
 permissions:
   id-token: write
   contents: read
+
 jobs:
   guard:
     runs-on: ubuntu-latest
@@ -29,26 +39,35 @@ jobs:
             echo "allowed=true" >> $GITHUB_OUTPUT
           fi
 
-  cleanup:
+  cleanup_ecr:
     if: needs.guard.outputs.allowed == 'true'
     needs: guard
-    runs-on: ubuntu-latest
-    steps:
-      - name: Cleanup ECR
-        uses: ./.github/workflows/cleanup-ecr.yml
-      - name: Cleanup S3
-        uses: ./.github/workflows/s3-cleanup.yml
+    uses: ./.github/workflows/cleanup-ecr.yml
+    secrets:
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+      S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
+
+  cleanup_s3:
+    if: needs.guard.outputs.allowed == 'true'
+    needs: guard
+    uses: ./.github/workflows/s3-cleanup.yml
+    secrets:
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+      S3_BUCKET_NAME: ${{ secrets.S3_BUCKET_NAME }}
 
   destroy:
     if: needs.guard.outputs.allowed == 'true'
-    needs: cleanup
+    needs: [cleanup_ecr, cleanup_s3]
     strategy:
       matrix:
         component: [ecr, backend, frontend]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Destroy ${{ matrix.component }}
-        uses: ./.github/workflows/terraform-infra.yml
-        with:
-          action: destroy
-          component: ${{ matrix.component }}
+    uses: ./.github/workflows/terraform-infra.yml
+    with:
+      action: destroy
+      component: ${{ matrix.component }}
+    secrets:
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
+

@@ -11,6 +11,11 @@ on:
         description: 'What component to target'
         required: true
         type: string
+    secrets:
+      AWS_REGION:
+        required: true
+      AWS_ACCOUNT_ID:
+        required: true
 
   workflow_dispatch:
     inputs:
