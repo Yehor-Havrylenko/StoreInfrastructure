@@ -12,7 +12,7 @@ jobs:
       component: ecr
 
   build_docker:
-    uses: ./.github/workflows/docker-build-push.yml
+    uses: ./.github/workflows/build-and-push.yml
     needs: apply_ecr
 
   apply_backend:
