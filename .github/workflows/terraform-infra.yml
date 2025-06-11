@@ -1,0 +1,51 @@
+name: Terraform Infrastructure Handler
+
+on:
+  workflow_dispatch:
+    inputs:
+      action:
+        description: 'What to do? apply or destroy'
+        required: true
+        default: 'apply'
+        type: choice
+        options:
+          - apply
+          - destroy
+      component:
+        description: 'What component? ecr, backend, frontend'
+        required: true
+        default: 'ecr'
+        type: choice
+        options:
+          - ecr
+          - backend
+          - frontend
+
+permissions:
+  id-token: write
+  contents: read
+
+jobs:
+  terraform:
+    name: "${{ github.event.inputs.component }} - ${{ github.event.inputs.action }}"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: Remote/AWS/Scripts
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Terraform
+        uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.12.1"
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/GitHub_Deploy_Role
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Run Terraform Script
+        run: bash controller.sh ${{ github.event.inputs.action }} dev ${{ github.event.inputs.component }}

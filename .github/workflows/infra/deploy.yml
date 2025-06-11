@@ -1,0 +1,57 @@
+name: Full Deploy Pipeline
+
+on:
+  workflow_dispatch:
+
+jobs:
+  deploy_ecr_and_build:
+    name: Deploy ECR and Build Images
+    runs-on: ubuntu-latest
+    steps:
+      - name: Apply ECR Infrastructure
+        uses: peter-evans/workflow-dispatch@v1
+        with:
+          workflow: terraform-infra.yml
+          ref: main
+          inputs:
+            action: apply
+            component: ecr
+
+      - name: Build Docker Images
+        uses: peter-evans/workflow-dispatch@v1
+        with:
+          workflow: docker-build-push.yml
+          ref: main
+
+  deploy_backend:
+    name: Deploy Backend
+    runs-on: ubuntu-latest
+    needs: deploy_ecr_and_build
+    steps:
+      - name: Apply Backend Infrastructure
+        uses: peter-evans/workflow-dispatch@v1
+        with:
+          workflow: terraform-infra.yml
+          ref: main
+          inputs:
+            action: apply
+            component: backend
+
+  deploy_frontend_and_sync:
+    name: Deploy Frontend and Sync S3
+    runs-on: ubuntu-latest
+    steps:
+      - name: Apply Frontend Infrastructure
+        uses: peter-evans/workflow-dispatch@v1
+        with:
+          workflow: terraform-infra.yml
+          ref: main
+          inputs:
+            action: apply
+            component: frontend
+
+      - name: Sync S3 Bucket
+        uses: peter-evans/workflow-dispatch@v1
+        with:
+          workflow: s3-sync.yml
+          ref: main

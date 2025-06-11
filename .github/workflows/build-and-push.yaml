@@ -1,0 +1,30 @@
+name: Build and Push Docker Images
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build_and_push:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+      - name: Clone f1-store Repository
+        run: git clone https://github.com/THE-GAME-DEVOPS/f1-store.git cloned
+      - name: Configure AWS Credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::${{ secrets.AWS_ACCOUNT_ID }}:role/GitHub_Deploy_Role
+          aws-region: ${{ secrets.AWS_REGION }}
+      - name: Login to Amazon ECR
+        uses: aws-actions/amazon-ecr-login@v2
+      - name: Build & Push via docker-compose
+        env:
+          MY_IMAGE_RDS: "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/learn-backend-rds:latest"
+          MY_IMAGE_REDIS: "${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/learn-backend-redis:latest"
+        run: |
+          cd Local
+          docker compose -f docker-compose.yaml build learn-backend-rds
+          docker compose -f docker-compose.yaml push learn-backend-rds
+          docker compose -f docker-compose.yaml build learn-backend-redis
+          docker compose -f docker-compose.yaml push learn-backend-redis
