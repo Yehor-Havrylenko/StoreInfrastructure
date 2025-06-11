@@ -58,7 +58,6 @@ jobs:
 
   destroy:
     if: needs.guard.outputs.allowed == 'true'
-    needs: [cleanup_ecr, cleanup_s3]
     strategy:
       matrix:
         component: [ecr, backend, frontend]
