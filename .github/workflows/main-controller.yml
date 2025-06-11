@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Trigger Deploy
-        uses: peter-evans/workflow-dispatch@v1
+        uses: benc-uk/workflow-dispatch@v1.1
         with:
           workflow: infra/deploy.yml
           ref: main
@@ -23,7 +23,7 @@ jobs:
     if: always()
     steps:
       - name: Trigger Destroy
-        uses: peter-evans/workflow-dispatch@v1
+        uses: benc-uk/workflow-dispatch@v1.1
         with:
           workflow: infra/destroy.yml
           ref: main
