@@ -29,6 +29,9 @@ jobs:
   build_docker:
     uses: ./.github/workflows/build-and-push.yml
     needs: apply_ecr
+    secrets:
+      AWS_REGION: ${{ secrets.AWS_REGION }}
+      AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
 
   apply_backend:
     uses: ./.github/workflows/terraform-infra.yml
