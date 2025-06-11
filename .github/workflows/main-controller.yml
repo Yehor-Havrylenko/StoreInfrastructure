@@ -7,11 +7,22 @@ on:
 
 jobs:
   trigger_deploy:
-    name: Run Full Deploy Workflow
     uses: ./.github/workflows/infra-deploy.yml
 
-  trigger_destroy:
-    name: Run Full Destroy Workflow
+  wait_confirmed:
+    name: Await manual approval before destroy
+    runs-on: ubuntu-latest
     needs: trigger_deploy
-    if: always()
+    environment:
+      name: approve-destroy
+    outputs:
+      confirmed: YES
+    steps:
+      - name: Approval received
+        run: echo "Approval granted. Continuing..."
+
+  trigger_destroy:
+    needs: [trigger_deploy, wait_confirmed]
     uses: ./.github/workflows/infra-destroy.yml
+    with:
+      confirm: ${{ needs.wait_confirmed.outputs.confirmed }}

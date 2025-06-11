@@ -1,6 +1,7 @@
 name: Terraform Infrastructure Handler
 
 on:
+  workflow_call:
   workflow_dispatch:
     inputs:
       action:

@@ -1,38 +1,49 @@
-name: Full Destroy Pipeline
+name: Destroy Infrastructure
 
 on:
   workflow_dispatch:
+  workflow_call:
+    inputs:
+      confirm:
+        required: true
+        type: string
 
 jobs:
-  cleanup_artifacts:
-    name: Cleanup ECR Images and S3
+  check_confirm:
+    runs-on: ubuntu-latest
+    outputs:
+      allow_destroy: ${{ steps.guard.outputs.allow_destroy }}
+    steps:
+      - id: guard
+        run: |
+          if [ "${{ inputs.confirm }}" != "YES" ]; then
+            echo "✅ Confirmation not provided. Skipping destroy."
+            echo "allow_destroy=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "allow_destroy=true" >> "$GITHUB_OUTPUT"
+          fi
+
+  cleanup:
+    if: needs.check_confirm.outputs.allow_destroy == 'true'
+    needs: check_confirm
     runs-on: ubuntu-latest
     steps:
       - name: Clean ECR
-        uses: peter-evans/workflow-dispatch@v1
-        with:
-          workflow: cleanup-ecr.yml
-          ref: main
+        uses: ./.github/workflows/cleanup-ecr.yml
 
-      - name: Clean S3 Bucket
-        uses: peter-evans/workflow-dispatch@v1
-        with:
-          workflow: s3-cleanup.yml
-          ref: main
+      - name: Clean S3
+        uses: ./.github/workflows/s3-cleanup.yml
 
-  destroy_infrastructure:
-    name: Destroy Terraform Infrastructure
-    runs-on: ubuntu-latest
-    needs: cleanup_artifacts
+  destroy_terraform:
+    if: needs.check_confirm.outputs.allow_destroy == 'true'
+    needs: cleanup
     strategy:
       matrix:
         component: [ecr, backend, frontend]
+    runs-on: ubuntu-latest
     steps:
       - name: Destroy ${{ matrix.component }}
-        uses: peter-evans/workflow-dispatch@v1
+        uses: ./.github/workflows/terraform-infra.yml
         with:
-          workflow: terraform-infra.yml
-          ref: main
-          inputs:
-            action: destroy
-            component: ${{ matrix.component }}
+          action: destroy
+          component: ${{ matrix.component }}
