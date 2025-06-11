@@ -58,6 +58,7 @@ jobs:
 
   destroy:
     if: needs.guard.outputs.allowed == 'true'
+    needs: guard
     strategy:
       matrix:
         component: [ecr, backend, frontend]
