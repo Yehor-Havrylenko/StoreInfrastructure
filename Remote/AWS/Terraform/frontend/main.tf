@@ -68,6 +68,23 @@ module "frontend_s3_bucket" {
 
   tags = var.bucket_tags
 }
+resource "aws_s3_bucket_policy" "this_policy" {
+  bucket = module.frontend_s3_bucket.s3_bucket_id
+
+  policy = jsonencode({
+    Version   = "2012-10-17"
+    Statement = [
+      {
+        Effect    = "Allow"
+        Principal = "*"
+        Action    = [
+          "s3:*"
+        ]
+        Resource  = "${module.frontend_s3_bucket.s3_bucket_arn}/*"
+      }
+    ]
+  })
+}
 # resource "aws_s3_bucket_policy" "frontend" {
 #   bucket = module.frontend_s3_bucket.s3_bucket_id
 
