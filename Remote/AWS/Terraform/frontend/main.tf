@@ -46,32 +46,48 @@ resource "aws_cloudfront_origin_access_identity" "this" {
   comment = "OAI for CloudFront Access to S3"
 }
 */
-resource "aws_s3_bucket" "this" {
+
+module "frontend_s3_bucket" {
+  source  = "terraform-aws-modules/s3-bucket/aws"
+  version = "3.15.1"
+
   bucket = var.bucket_name
 
-  website {
-    index_document = var.index_document
-    error_document = var.error_document
+  block_public_acls       = true
+  block_public_policy     = true
+  ignore_public_acls      = true
+  restrict_public_buckets = true
+
+  server_side_encryption_configuration = {
+    rule = {
+      apply_server_side_encryption_by_default = {
+        sse_algorithm = "AES256"
+      }
+    }
   }
 
   tags = var.bucket_tags
 }
-resource "aws_s3_bucket_policy" "this_policy" {
-  bucket = aws_s3_bucket.this.id
+# resource "aws_s3_bucket_policy" "frontend" {
+#   bucket = module.frontend_s3_bucket.s3_bucket_id
 
-  policy = jsonencode({
-    Version   = "2012-10-17"
-    Statement = [
-      {
-        Effect   = "Allow"
-        Principal = {
-          AWS = "arn:aws:iam::449677443446:role/GitHub_Deploy_Role"
-        }
-        Action   = [
-          "s3:*",
-        ]
-        Resource = "${aws_s3_bucket.this.arn}/*"
-      }
-    ]
-  })
-}
+#   policy = jsonencode({
+#     Version = "2012-10-17"
+#     Statement = [
+#       {
+#         Sid    = "AllowCloudFrontServicePrincipal"
+#         Effect = "Allow"
+#         Principal = {
+#           Service = "cloudfront.amazonaws.com"
+#         }
+#         Action   = "s3:GetObject"
+#         Resource = "${module.frontend_s3_bucket.s3_bucket_arn}/*"
+#         Condition = {
+#           StringEquals = {
+#             "AWS:SourceArn" = var.cloudfront
+#           }
+#         }
+#       }
+#     ]
+#   })
+# }
