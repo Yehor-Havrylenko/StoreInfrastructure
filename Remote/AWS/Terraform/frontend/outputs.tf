@@ -1,9 +1,9 @@
 output "bucket_name" {
-  value       = frontend_s3_bucket.this.bucket
+  value       = frontend_s3_bucket.bucket
 }
 
 output "bucket_regional_domain_name" {
-  value       = frontend_s3_bucket.this.bucket_regional_domain_name
+  value       = frontend_s3_bucket.bucket_regional_domain_name
 }
 
 /*output "cloudfront_domain_name" {
