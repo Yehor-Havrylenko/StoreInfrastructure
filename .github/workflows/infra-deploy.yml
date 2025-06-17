@@ -57,7 +57,7 @@ jobs:
   sync_s3:
     uses: ./.github/workflows/s3-sync.yml
     needs: apply_frontend
-    inputs:
+    with:
       S3_BUCKET_NAME: ${{ inputs.S3_BUCKET_NAME }}
     secrets:
       AWS_REGION: ${{ secrets.AWS_REGION }}

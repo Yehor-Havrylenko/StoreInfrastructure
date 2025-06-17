@@ -14,7 +14,7 @@ jobs:
     secrets:
       AWS_REGION: ${{ secrets.AWS_REGION }}
       AWS_ACCOUNT_ID: ${{ secrets.AWS_ACCOUNT_ID }}
-    inputs:
+    with:
       S3_BUCKET_NAME: ${{ vars.S3_BUCKET_NAME }}
 
   wait_confirmed:
