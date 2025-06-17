@@ -7,8 +7,10 @@ on:
         required: true
       AWS_ACCOUNT_ID:
         required: true
+    inputs:
       S3_BUCKET_NAME:
         required: true
+        type: string
 
 jobs:
   cleanup-s3:
@@ -21,5 +23,5 @@ jobs:
           aws-region: ${{ secrets.AWS_REGION }}
       - name: Empty S3 Bucket
         run: |
-          aws s3 rm s3://${{ secrets.S3_BUCKET_NAME }} --recursive \
+          aws s3 rm s3://${{ inputs.S3_BUCKET_NAME }} --recursive \
             --region ${{ secrets.AWS_REGION }}

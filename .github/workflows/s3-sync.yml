@@ -7,8 +7,10 @@ on:
         required: true
       AWS_ACCOUNT_ID:
         required: true
+    inputs:
       S3_BUCKET_NAME:
         required: true
+        type: string
 jobs:
   sync:
     runs-on: ubuntu-latest
@@ -24,5 +26,5 @@ jobs:
         run: git clone https://github.com/THE-GAME-DEVOPS/f1-store.git cloned
       - name: Sync to S3
         run: |
-          aws s3 sync ./cloned/frontend/ s3://${{ secrets.S3_BUCKET_NAME }} \
+          aws s3 sync ./cloned/frontend/ s3://${{ inputs.S3_BUCKET_NAME }} \
             --delete
